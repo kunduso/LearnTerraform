@@ -8,11 +8,11 @@ terraform {
 
 provider "aws" {
   profile = "default"
-  region  = "us-east-2"
+  region  = var.region
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-0239d3998515e9ed1"
+  ami           = var.ami
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
