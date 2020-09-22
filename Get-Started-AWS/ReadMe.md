@@ -10,4 +10,4 @@ Installation is available as part of getting stated documentations at https://ww
 
 ## Notes:
 -
-<br />- in-order to not be prompted for each <code>terraform apply</code> and <code>terraform destroy</code> command, add <code>--auto-approve</code> at the end. But do not use this the first time to provision an instance, since that might result in incorrect provisioning and without the review, there is no way to find that out.
+<br />- in-order to not be prompted for each <code>terraform apply</code> and <code>terraform destroy</code> command, add <code>--auto-approve</code> at the end. But do not use this the first time to provision an instance, since that might result in incorrect provisioning and without the review, it might take longer to identify that.
