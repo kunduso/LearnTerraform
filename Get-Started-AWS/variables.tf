@@ -7,3 +7,5 @@ variable "ami" {
 variable "instance_count" {
     default = 2
 }
+variable "aws_access_key" {}
+variable "aws_secret_key" {}

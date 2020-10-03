@@ -9,10 +9,10 @@ To begin with, most of my hands on learnings are going to be following tutorials
 Installation is available as part of getting stated documentations at https://www.terraform.io/
 
 ## Usage:
--start with <code>terraform init</code> in the folder where the .tf file exists
-<br />- followed by <code>terraform plan</code>
-<br />- next <code>terraform apply</code>
+- start with <code>terraform init</code> in the folder where the .tf file exists
+<br />- followed by <code>terraform plan -out ${PlanFileName}.tfplan</code>
+<br />- next <code>terraform apply ${PlanFileName}.tfplan</code>
 <br />- in-order to not be prompted for each <code>terraform apply</code> and <code>terraform destroy</code> command, add <code>--auto-approve</code> at the end. But do not use this the first time to provision an instance, since that might result in incorrect provisioning and without the review, it might take longer to identify and correct the error.
 
 ## Notes:
--when creating a new repository for terraform please be careful what kind of files are being commited (we do not want sensetive files like state and tfvars to be commited at all). Use .gitignore effectively in this case
+-when creating a new repository for terraform please be careful what kind of files are being commited (we do not want sensetive files like state and tfvars to be commited at all). Use .gitignore effectively in this case.
