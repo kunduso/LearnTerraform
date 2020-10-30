@@ -1,0 +1,2 @@
+## Motivation
+I learnt about Azure Service Principal and how to create them from the commandline. I went through an informative article by Ned Bellavance on that subject. My intention is to be able to create a Azure Service Principal and then use the credentials to be able to provision a Resource group in Azure.
