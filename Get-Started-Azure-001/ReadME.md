@@ -15,6 +15,12 @@ I learnt about Azure Service Principal and how to create them from the commandli
 </br>}
 
 
+## Command
+### Delete service pricipal: <code>az ad sp delete --id $(appId)</code>
+</br>
+
+## Usage
+The values received from the console output of <code>az ad sp create-for-rbac</code> are mapped to terraform variables. Details at [Terraform -creating a service principal](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret#creating-a-service-principal)
 ## Reference Articles
 [Microsoft Docs](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli)
 
