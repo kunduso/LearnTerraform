@@ -13,8 +13,13 @@ provider "aws" {
   secret_key = var.secret_key
 }
 
+resource "random_integer" "rand_int" {
+  min = 10000
+  max = 99999  
+}
+
 resource "aws_s3_bucket" "aws-b1" {
-  bucket = "terraform-bucket"
+  bucket = "${var.bucket_name}-${random_integer.rand_int.result}"
   acl    = "private"
 
   tags = {
