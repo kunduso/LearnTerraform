@@ -27,3 +27,13 @@ resource "aws_s3_bucket" "aws-b1" {
     Environment = "Dev"
   }
 }
+
+resource "aws_instance" "server" {
+  ami = "${var.ami_location["${var.region}"]}"
+  instance_type = "t2.micro"
+  key_name = "terraform-key"
+  security_groups = ["${aws_security_group.allow_rdp.name}"]
+  tags = {
+    Name = "Web-App-Prod-1"
+  }
+}

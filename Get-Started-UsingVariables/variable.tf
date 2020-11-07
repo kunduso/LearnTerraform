@@ -15,3 +15,10 @@ variable "bucket_name" {
     type = list(string)
     default = ["beans", "pepper", "tomato"]
 }
+variable "ami_location" {
+  type = map
+  default = {
+    us-east-1 = "ami-0412e100c0177fb4b"
+    us-east-2 = "ami-0354df7841220296c"
+  }
+}
