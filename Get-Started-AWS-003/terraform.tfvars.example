@@ -1,0 +1,10 @@
+region     = "us-east-2"
+access_key = "$(Enter-Access-Key)"
+secret_key = "$(Enter-Sectret-Key)"
+
+# if the keypair name is Terraform-KeyPair.pem the key_name to be provided is on "Terraform-KeyPair" Do not append the .pem at the end
+key_name   = "name_of_existing_key_pair"
+
+# provide the path where the pem file is stored along with the .pem extension of the file.
+# for windows, if the file is stored at C:\Terraform\PemFiles then the value of the below variable is C:\\Terraform\\PemFiles\\Terraform-KeyPair.pem
+private_key_path = "private_key_path\private_key_file.pem"
