@@ -10,7 +10,7 @@ Rename the terraform.tfvars.example file to terraform.tfvars and update the valu
 <code>terraform fmt</code> (this is optional)</br>
 <code>terraform plan -out ec2provision.tfplan</code></br>
 <code>terraform apply "ec2provision.tfplan"</code></br>
-Once done, I was able to login to the machine with the value provided in the outputs, the public_dns of the machine.
+Once done, I was able to launch the webpage with the value provided in the outputs, the public_dns of the machine.
 </br> After I was convinced this was working as expected, I destroyed the resouces using the command: <code>terraform destroy</code>
 
 ## Error received
