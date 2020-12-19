@@ -20,12 +20,12 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "nginx_profile" {
-  name = "nginx_profile"
+  name = "${local.env_name}_nginx_profile"
   role = aws_iam_role.allow_nginx_s3.name
 }
 
 resource "aws_iam_role_policy" "allow_s3_all" {
-  name = "allow_s3_all"
+  name = "${local.env_name}_allow_s3_all"
   role = aws_iam_role.allow_nginx_s3.name
 
   policy = <<EOF
