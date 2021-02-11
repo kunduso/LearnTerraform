@@ -17,7 +17,7 @@ steps:
   displayName: 'Install Terraform 0.13.5'
   inputs:
     terraformVersion: 0.13.5
-	
+
 - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
   displayName: 'Terraform : init'
   inputs:
@@ -26,7 +26,7 @@ steps:
     backendServiceAWS: 'AWS-Terraform'
     backendAWSBucketName: 'skundu-terraform-remote-state'
     backendAWSKey: 'tf/Get-Started-AWS-009-CI-CD-AzureDevops/terraform.tfstate'
-	
+
 #Your build pipeline references a secret variable named ‘access_key’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it secret. See https://go.microsoft.com/fwlink/?linkid=865972
 #Your build pipeline references a secret variable named ‘secret_key’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it secret. See https://go.microsoft.com/fwlink/?linkid=865972
 variables:
@@ -43,7 +43,7 @@ variables:
     backendServiceAWS: 'AWS-Terraform'
     backendAWSBucketName: 'skundu-terraform-remote-state'
     backendAWSKey: 'tf/Get-Started-AWS-001/terraform.tfstate'
-	
+
 - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
   displayName: 'Terraform : validate and apply'
   inputs:
