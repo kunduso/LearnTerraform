@@ -1,8 +1,6 @@
 terraform {
-
   cloud {
     organization = "kunduso"
-
     workspaces {
       name = "app-two-layer-0"
     }
