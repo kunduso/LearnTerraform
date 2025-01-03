@@ -20,7 +20,7 @@ provider "aws" {
   secret_key = var.secret_key
   default_tags {
     tags = {
-      Source = "https://github.com/kunduso/app-two"
+      Source = "https://github.com/kunduso/LearnTerraform"
     }
   }
 }
