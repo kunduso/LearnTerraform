@@ -63,7 +63,8 @@ To skip prompts and automatically approve the operations (use with caution), add
 
 ````
 terraform apply --auto-approve
-
+````
+````
 terraform destroy --auto-approve
 ````
 Note: It's advisable not to use `--auto-approve` for the first time to provision resources to ensure you review the execution plan for correctness.
