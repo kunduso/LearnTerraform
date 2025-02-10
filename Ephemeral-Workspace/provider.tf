@@ -1,8 +1,8 @@
 terraform {
   cloud {
-    organization = "kunduso"
+    organization = "wellsiau-org"
     workspaces {
-      name = "app-two-layer-0"
+      name = "kunduso-hashitalk25"
     }
   }
 
