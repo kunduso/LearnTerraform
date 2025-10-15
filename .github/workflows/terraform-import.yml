@@ -11,6 +11,8 @@ on:
     paths:
       - 'terraform-import-aws-resource/**'
 
+env:
+  AWS_REGION: us-west-2  # set this to your preferred AWS region
 permissions: read-all
 
 jobs:
@@ -31,14 +33,14 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Configure AWS Credentials Action For GitHub Actions
-      uses: aws-actions/configure-aws-credentials@v1-node16
+      uses: aws-actions/configure-aws-credentials@v5.1.0
       with:
         role-to-assume: ${{ secrets.IAM_ROLE }}
         role-session-name: AWSSession
-        aws-region: us-west-2
+        aws-region: ${{ env.AWS_REGION }}
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v3
 
     - name: Terraform Init
       id: init
