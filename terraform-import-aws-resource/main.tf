@@ -6,7 +6,7 @@ import {
 
 # VPC resource configuration to match the manually created VPC
 resource "aws_vpc" "imported_vpc" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/24"
   enable_dns_hostnames = true
   enable_dns_support   = true
 
