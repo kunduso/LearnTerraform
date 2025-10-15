@@ -6,10 +6,12 @@ on:
     branches: [ '*' ]
     paths:
       - 'terraform-import-aws-resource/**'
+      - '.github/workflows/terraform-import.yml'
   pull_request:
     branches: ["main"]
     paths:
       - 'terraform-import-aws-resource/**'
+      - '.github/workflows/terraform-import.yml'
 
 env:
   AWS_REGION: us-west-2  # set this to your preferred AWS region
