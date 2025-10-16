@@ -11,6 +11,6 @@ resource "aws_vpc" "imported_vpc" {
   enable_dns_support   = true
 
   tags = {
-    Name = "import-vpc"
+    Name = "web-tier"
   }
 }
