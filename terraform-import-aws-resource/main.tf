@@ -46,3 +46,34 @@ resource "aws_subnet" "web_tier_public_2" {
     Name = "web-tier-public-2"
   }
 }
+# Import blocks for private subnets
+import {
+  to = aws_subnet.web_tier_private_1
+  id = "subnet-06b929c181ad6c4ff"
+}
+
+import {
+  to = aws_subnet.web_tier_private_2
+  id = "subnet-07838fbfa5c1efc17"
+}
+
+# Private subnet resources
+resource "aws_subnet" "web_tier_private_1" {
+  vpc_id            = aws_vpc.imported_vpc.id
+  cidr_block        = "12.25.15.64/27" # You'll need to verify this CIDR
+  availability_zone = "us-west-2a"
+
+  tags = {
+    Name = "web-tier-private-1"
+  }
+}
+
+resource "aws_subnet" "web_tier_private_2" {
+  vpc_id            = aws_vpc.imported_vpc.id
+  cidr_block        = "12.25.15.96/27" # You'll need to verify this CIDR
+  availability_zone = "us-west-2b"
+
+  tags = {
+    Name = "web-tier-private-2"
+  }
+}
