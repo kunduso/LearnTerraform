@@ -77,3 +77,64 @@ resource "aws_subnet" "web_tier_private_2" {
     Name = "web-tier-private-2"
   }
 }
+# Import blocks for route tables
+import {
+  to = aws_route_table.web_tier_public
+  id = "rtb-0051b74c62960239a"
+}
+
+import {
+  to = aws_route_table.web_tier_private_1
+  id = "rtb-096262c0795386cb0"
+}
+
+import {
+  to = aws_route_table.web_tier_private_2
+  id = "rtb-066e3d20ee79c434a"
+}
+
+# Route table resources
+resource "aws_route_table" "web_tier_public" {
+  vpc_id = aws_vpc.imported_vpc.id
+
+  tags = {
+    Name = "web-tier-public"
+  }
+}
+
+resource "aws_route_table" "web_tier_private_1" {
+  vpc_id = aws_vpc.imported_vpc.id
+
+  tags = {
+    Name = "web-tier-private-1"
+  }
+}
+
+resource "aws_route_table" "web_tier_private_2" {
+  vpc_id = aws_vpc.imported_vpc.id
+
+  tags = {
+    Name = "web-tier-private-2"
+  }
+}
+
+# Route table associations
+resource "aws_route_table_association" "web_tier_public_1" {
+  subnet_id      = aws_subnet.web_tier_public_1.id
+  route_table_id = aws_route_table.web_tier_public.id
+}
+
+resource "aws_route_table_association" "web_tier_public_2" {
+  subnet_id      = aws_subnet.web_tier_public_2.id
+  route_table_id = aws_route_table.web_tier_public.id
+}
+
+resource "aws_route_table_association" "web_tier_private_1" {
+  subnet_id      = aws_subnet.web_tier_private_1.id
+  route_table_id = aws_route_table.web_tier_private_1.id
+}
+
+resource "aws_route_table_association" "web_tier_private_2" {
+  subnet_id      = aws_subnet.web_tier_private_2.id
+  route_table_id = aws_route_table.web_tier_private_2.id
+}
