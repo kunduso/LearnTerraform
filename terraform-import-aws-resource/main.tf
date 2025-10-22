@@ -29,7 +29,7 @@ import {
 # Public subnet resources
 resource "aws_subnet" "web_tier_public_1" {
   vpc_id            = aws_vpc.imported_vpc.id
-  cidr_block        = "12.25.15.0/27" # You'll need to verify this CIDR
+  cidr_block        = "12.25.15.0/27"
   availability_zone = "us-west-2a"
 
   tags = {
@@ -39,7 +39,7 @@ resource "aws_subnet" "web_tier_public_1" {
 
 resource "aws_subnet" "web_tier_public_2" {
   vpc_id            = aws_vpc.imported_vpc.id
-  cidr_block        = "12.25.15.32/27" # You'll need to verify this CIDR
+  cidr_block        = "12.25.15.32/27"
   availability_zone = "us-west-2b"
 
   tags = {
@@ -60,7 +60,7 @@ import {
 # Private subnet resources
 resource "aws_subnet" "web_tier_private_1" {
   vpc_id            = aws_vpc.imported_vpc.id
-  cidr_block        = "12.25.15.64/27" # You'll need to verify this CIDR
+  cidr_block        = "12.25.15.64/27"
   availability_zone = "us-west-2a"
 
   tags = {
@@ -70,7 +70,7 @@ resource "aws_subnet" "web_tier_private_1" {
 
 resource "aws_subnet" "web_tier_private_2" {
   vpc_id            = aws_vpc.imported_vpc.id
-  cidr_block        = "12.25.15.96/27" # You'll need to verify this CIDR
+  cidr_block        = "12.25.15.96/27"
   availability_zone = "us-west-2b"
 
   tags = {
