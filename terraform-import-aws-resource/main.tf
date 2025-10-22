@@ -141,20 +141,20 @@ resource "aws_route_table_association" "web_tier_private_2" {
 # Import blocks for route table associations
 import {
   to = aws_route_table_association.web_tier_public_1
-  id = "rtbassoc-078b958640daabc73"
+  id = "subnet-0ea4fe97c34c804e6/rtb-0051b74c62960239a"
 }
 
 import {
   to = aws_route_table_association.web_tier_public_2
-  id = "rtbassoc-0f66b46d503af04be"
+  id = "subnet-05b20b4d8660a2bd4/rtb-0051b74c62960239a"
 }
 
 import {
   to = aws_route_table_association.web_tier_private_1
-  id = "rtbassoc-0dda10d372e1c2814"
+  id = "subnet-06b929c181ad6c4ff/rtb-096262c0795386cb0"
 }
 
 import {
   to = aws_route_table_association.web_tier_private_2
-  id = "rtbassoc-0da23891815279cb8"
+  id = "subnet-07838fbfa5c1efc17/rtb-066e3d20ee79c434a"
 }
