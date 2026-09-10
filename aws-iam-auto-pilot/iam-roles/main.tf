@@ -152,6 +152,14 @@ resource "aws_iam_role" "apply" {
 # actions, so state access must live here.
 data "aws_iam_policy_document" "apply_state_access" {
   statement {
+    sid    = "TerraformStateBucketAccess"
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [local.state_bucket_arn]
+  }
+  statement {
     sid    = "TerraformStateFileAccess"
     effect = "Allow"
     actions = [
@@ -160,16 +168,6 @@ data "aws_iam_policy_document" "apply_state_access" {
       "s3:DeleteObject"
     ]
     resources = [local.state_object_arn]
-  }
-  statement {
-    sid    = "ManageApplyRolePolicy"
-    effect = "Allow"
-    actions = [
-      "iam:PutRolePolicy",
-      "iam:DeleteRolePolicy",
-      "iam:GetRolePolicy",
-    ]
-    resources = [local.apply_role_arn]
   }
 }
 
