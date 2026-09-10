@@ -14,7 +14,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Source = "https://github.com/kunduso/LearnTerraform/aws-iam-auto-pilot"
+      Source = "https://github.com/kunduso/LearnTerraform/aws-iam-auto-pilot/infra"
     }
   }
 }
