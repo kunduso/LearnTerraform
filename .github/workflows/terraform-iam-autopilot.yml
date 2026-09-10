@@ -32,7 +32,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./aws-iam-auto-pilot
+        working-directory: ./aws-iam-auto-pilot/infra
 
     steps:
     - name: Checkout
