@@ -14,7 +14,7 @@ on:
       - '.github/workflows/terraform-iam-autopilot.yml'
       
 env:
-  AWS_REGION: us-west-1                   # region for the demo resources and state bucket
+  AWS_REGION: us-west-2                   # region for the demo resources
   APPLY_POLICY_NAME: autopilot-generated  # inline policy name on the apply role (overwritten each run)
   POLICY_FILE: generated-policy.json      # reviewed policy, committed to the PR branch
 
@@ -43,7 +43,7 @@ jobs:
       with:
         role-to-assume: ${{ secrets.IAM_ROLE_GITHUB_OIDC }}
         role-session-name: AWSSession
-        aws-region: us-west-2
+        aws-region: ${{ env.AWS_REGION }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
