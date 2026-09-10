@@ -13,7 +13,7 @@ on:
       - 'aws-iam-auto-pilot/**'
       - '.github/workflows/terraform-iam-autopilot.yml'
       
-  env:
+env:
   AWS_REGION: us-west-1                   # region for the demo resources and state bucket
   APPLY_POLICY_NAME: autopilot-generated  # inline policy name on the apply role (overwritten each run)
   POLICY_FILE: generated-policy.json      # reviewed policy, committed to the PR branch
@@ -32,13 +32,14 @@ jobs:
     defaults:
       run:
         shell: bash
+        working-directory: ./aws-iam-auto-pilot
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Configure AWS Credentials Action For GitHub Actions
-      uses: aws-actions/configure-aws-credentials@v1-node16
+      uses: aws-actions/configure-aws-credentials@v5.1.0
       with:
         role-to-assume: ${{ secrets.IAM_ROLE_GITHUB_OIDC }}
         role-session-name: AWSSession
