@@ -78,17 +78,23 @@ resource "aws_iam_role_policy_attachment" "pipeline_readonly" {
 # so the pipeline role cannot alter its own permissions.
 data "aws_iam_policy_document" "pipeline_permissions" {
   statement {
-    sid    = "TerraformStateAccess"
+    sid    = "TerraformStateBucketAccess"
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [local.state_bucket_arn]
+  }
+  statement {
+    sid    = "TerraformStateFileAccess"
     effect = "Allow"
     actions = [
       "s3:GetObject",
       "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:ListBucket",
+      "s3:DeleteObject"
     ]
-    resources = [local.state_bucket_arn, local.state_object_arn]
+    resources = [local.state_object_arn]
   }
-
   statement {
     sid    = "ManageApplyRolePolicy"
     effect = "Allow"
