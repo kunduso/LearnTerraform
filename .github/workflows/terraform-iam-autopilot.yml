@@ -5,100 +5,191 @@ on:
   push:
     branches: [ '*' ]
     paths:
-      - 'aws-iam-auto-pilot/**'
+      - 'aws-iam-auto-pilot/infra/**'
       - '.github/workflows/terraform-iam-autopilot.yml'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'aws-iam-auto-pilot/**'
+      - 'aws-iam-auto-pilot/infra/**'
       - '.github/workflows/terraform-iam-autopilot.yml'
-      
+
 env:
-  AWS_REGION: us-west-2                   # region for the demo resources
-  APPLY_POLICY_NAME: autopilot-generated  # inline policy name on the apply role (overwritten each run)
-  POLICY_FILE: generated-policy.json      # reviewed policy, committed to the PR branch
+  AWS_REGION: us-west-2                    # region for the demo resources
+  APPLY_POLICY_NAME: autopilot-generated   # inline policy name on the apply role (overwritten each run)
+  # Path (relative to repo root) where the reviewed policy is committed.
+  POLICY_DIR: aws-iam-auto-pilot/generated-policy
+  POLICY_FILE: aws-iam-auto-pilot/generated-policy/generated-policy.json
 
 permissions: read-all
 
 jobs:
   terraform:
-    name: 'continuous-integration'
+    name: 'iam-autopilot-scoped-apply'
     runs-on: ubuntu-latest
     environment: production
     permissions:
-      contents: read
-      id-token: write
-      pull-requests: write
+      contents: write        # commit the generated policy to the PR branch
+      id-token: write        # OIDC
+      pull-requests: write    # post the review comment
     defaults:
       run:
         shell: bash
-        working-directory: ./aws-iam-auto-pilot/infra
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Check out the PR head branch so we can commit the policy back to it.
+          ref: ${{ github.head_ref || github.ref_name }}
 
-    - name: Configure AWS Credentials Action For GitHub Actions
-      uses: aws-actions/configure-aws-credentials@v5.1.0
-      with:
-        role-to-assume: ${{ secrets.IAM_ROLE_GITHUB_OIDC }}
-        role-session-name: AWSSession
-        aws-region: ${{ env.AWS_REGION }}
+      # --- Authenticate as the PIPELINE role (plan reads, state access, manage apply-role policy) ---
+      - name: Configure AWS credentials (pipeline role)
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AUTOPILOT_PIPELINE_ROLE_ARN }}
+          role-session-name: autopilot-pipeline
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
-      id: init
-      run: terraform init
+      - name: Install IAM Policy Autopilot
+        run: |
+          curl -sSL https://github.com/awslabs/iam-policy-autopilot/raw/refs/heads/main/install.sh | sudo sh
+          iam-policy-autopilot --version
 
-    - name: Terraform Format
-      id: fmt
-      if: github.event_name == 'pull_request'
-      run: terraform fmt -check
+      - name: Terraform Init
+        id: init
+        working-directory: ./aws-iam-auto-pilot/infra
+        run: terraform init -input=false
 
-    - name: Terraform Validate
-      id: validate
-      if: github.event_name == 'pull_request'
-      run: terraform validate -no-color
+      - name: Terraform Format
+        id: fmt
+        if: github.event_name == 'pull_request'
+        working-directory: ./aws-iam-auto-pilot/infra
+        run: terraform fmt -check
 
-    - name: Terraform Plan
-      id: plan
-      if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
-      run: |
-        terraform plan -no-color -input=false -out=TFplan.JSON
-      continue-on-error: true
+      - name: Terraform Validate
+        id: validate
+        if: github.event_name == 'pull_request'
+        working-directory: ./aws-iam-auto-pilot/infra
+        run: terraform validate -no-color
 
-    - name: Post Terraform Plan Output
-      uses: actions/github-script@v6
-      if: github.event_name == 'pull_request'
-      env:
-        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+      - name: Terraform Plan
+        id: plan
+        working-directory: ./aws-iam-auto-pilot/infra
+        run: terraform plan -no-color -input=false -out=plan.tfplan
+        continue-on-error: true
 
-          <details><summary>Show Plan</summary>
+      # --- Generate the scoped IAM policy from the plan.
+      #     Skipped on main: main applies the policy reviewed and committed on the PR branch. ---
+      - name: Generate scoped IAM policy
+        id: generate
+        if: steps.plan.outcome == 'success' && github.ref != 'refs/heads/main'
+        working-directory: ./aws-iam-auto-pilot/infra
+        env:
+          DISABLE_IAM_POLICY_AUTOPILOT_TELEMETRY: "true"
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          terraform show -json plan.tfplan > plan.json
+          iam-policy-autopilot generate-policies plan.json \
+            --region "${AWS_REGION}" \
+            --account "${ACCOUNT_ID}" \
+            --pretty > autopilot-output.json
+          mkdir -p "${GITHUB_WORKSPACE}/${POLICY_DIR}"
+          python3 -c "import json;print(json.dumps(json.load(open('autopilot-output.json'))['Policies'][0]['Policy'], indent=2))" \
+            > "${GITHUB_WORKSPACE}/${POLICY_FILE}"
+          echo "Generated policy:"
+          cat "${GITHUB_WORKSPACE}/${POLICY_FILE}"
 
-          \`\`\`\n
-          ${process.env.PLAN}
-          \`\`\`
+      # --- On PR: commit the generated policy to the PR branch (appears in the PR diff for review).
+      #     [skip ci] prevents the bot commit from re-triggering this workflow. ---
+      - name: Commit generated policy to PR branch
+        if: github.event_name == 'pull_request' && steps.generate.outcome == 'success'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${POLICY_FILE}"
+          if git diff --cached --quiet; then
+            echo "No policy change to commit."
+          else
+            git commit -m "chore: update scoped IAM policy from plan [skip ci]"
+            git push origin "HEAD:${{ github.head_ref }}"
+            echo "Committed ${POLICY_FILE} to ${{ github.head_ref }}"
+          fi
 
-          </details>
+      # --- On PR: post the policy as a review comment (in addition to the committed diff) ---
+      - name: Post generated policy on PR
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let policy = 'Plan did not succeed or produced no policy.';
+            try { policy = fs.readFileSync(process.env.POLICY_FILE, 'utf8'); } catch (e) {}
+            const output = `#### IAM Policy Autopilot — scoped apply policy 🔐
+            #### Terraform Format 🖌 \`${{ steps.fmt.outcome }}\` · Init ⚙️ \`${{ steps.init.outcome }}\` · Validate 🤖 \`${{ steps.validate.outcome }}\` · Plan 📖 \`${{ steps.plan.outcome }}\`
 
-          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            This policy has been committed to the branch and is the policy the apply role will receive when this PR merges. Review it before approving.
 
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: output
-          })
+            <details><summary>Show generated policy</summary>
 
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve -input=false
+            \`\`\`json
+            ${policy}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      # --- On merge to main: attach the reviewed policy to the apply role, then apply as that role ---
+      - name: Attach reviewed policy to apply role
+        id: attach
+        if: github.ref == 'refs/heads/main' && steps.plan.outcome == 'success'
+        run: |
+          if [ ! -f "${POLICY_FILE}" ]; then
+            echo "::error::${POLICY_FILE} not found on main. It must be generated and committed via a PR before merging."
+            exit 1
+          fi
+          APPLY_ROLE_ARN="${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}"
+          APPLY_ROLE_NAME="${APPLY_ROLE_ARN##*/}"
+          echo "APPLY_ROLE_NAME=${APPLY_ROLE_NAME}" >> "$GITHUB_ENV"
+          aws iam put-role-policy \
+            --role-name "${APPLY_ROLE_NAME}" \
+            --policy-name "${APPLY_POLICY_NAME}" \
+            --policy-document "file://${POLICY_FILE}"
+          echo "Attached ${APPLY_POLICY_NAME} to ${APPLY_ROLE_NAME}"
+          sleep 10   # allow IAM propagation
+
+      - name: Assume apply role and apply
+        if: github.ref == 'refs/heads/main' && steps.attach.outcome == 'success'
+        working-directory: ./aws-iam-auto-pilot/infra
+        run: |
+          CREDS=$(aws sts assume-role \
+            --role-arn "${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}" \
+            --role-session-name autopilot-apply \
+            --query 'Credentials' --output json)
+          export AWS_ACCESS_KEY_ID=$(echo "$CREDS" | python3 -c "import json,sys;print(json.load(sys.stdin)['AccessKeyId'])")
+          export AWS_SECRET_ACCESS_KEY=$(echo "$CREDS" | python3 -c "import json,sys;print(json.load(sys.stdin)['SecretAccessKey'])")
+          export AWS_SESSION_TOKEN=$(echo "$CREDS" | python3 -c "import json,sys;print(json.load(sys.stdin)['SessionToken'])")
+          aws sts get-caller-identity
+          terraform apply -auto-approve -input=false plan.tfplan
+
+      # --- Always remove the generated policy from the apply role (runs as the pipeline role) ---
+      - name: Cleanup generated policy from apply role
+        if: always() && github.ref == 'refs/heads/main'
+        run: |
+          APPLY_ROLE_ARN="${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}"
+          APPLY_ROLE_NAME="${APPLY_ROLE_NAME:-${APPLY_ROLE_ARN##*/}}"
+          aws iam delete-role-policy \
+            --role-name "${APPLY_ROLE_NAME}" \
+            --policy-name "${APPLY_POLICY_NAME}" \
+            && echo "Removed ${APPLY_POLICY_NAME} from ${APPLY_ROLE_NAME}" \
+            || echo "Nothing to remove (policy not attached)"
