@@ -38,12 +38,12 @@ jobs:
           role-session-name: autopilot-pipeline
           aws-region: ${{ env.AWS_REGION }}
 
-      # --- On merge to main: attach the reviewed policy to the apply role, then apply as that role ---
+      # --- Attach the reviewed policy to the apply role, then apply as that role ---
       - name: Attach reviewed policy to apply role
         id: attach
         run: |
           if [ ! -f "${POLICY_FILE}" ]; then
-            echo "::error::${POLICY_FILE} not found on main. It must be generated and committed via a PR before merging."
+            echo "::error::${POLICY_FILE} not found on main."
             exit 1
           fi
           APPLY_ROLE_ARN="${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}"
@@ -56,15 +56,17 @@ jobs:
           echo "Attached ${APPLY_POLICY_NAME} to ${APPLY_ROLE_NAME}"
           sleep 10   # allow IAM propagation
 
-      - name: Assume apply role and run aws cli steps
+      - name: Assume apply role
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}
+          role-session-name: autopilot-apply
+          aws-region: ${{ env.AWS_REGION }}
+          role-chaining: true # chang from the current pipeline role to the apply role
+          role-skip-session-tagging: true # skip session tagging to avoid permission issues
+
+      - name: Attempt out of scope call (expecting AccessDenied)
         run: |
-          CREDS=$(aws sts assume-role \
-            --role-arn "${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}" \
-            --role-session-name autopilot-apply \
-            --query 'Credentials' --output json)
-          export AWS_ACCESS_KEY_ID=$(echo "$CREDS" | python3 -c "import json,sys;print(json.load(sys.stdin)['AccessKeyId'])")
-          export AWS_SECRET_ACCESS_KEY=$(echo "$CREDS" | python3 -c "import json,sys;print(json.load(sys.stdin)['SecretAccessKey'])")
-          export AWS_SESSION_TOKEN=$(echo "$CREDS" | python3 -c "import json,sys;print(json.load(sys.stdin)['SessionToken'])")
           aws sts get-caller-identity
           if aws ec2 describe-instances --region "$AWS_REGION" 2>err.txt; then
             echo "UNEXPECTED: call succeeded — policy is too broad"; exit 1
