@@ -1,17 +1,24 @@
 ## Introduction
-In this module I am going to explore using <code>terraform workspace</code>
-
-
+In this module I am going to explore using `terraform workspace`.
 
 ## To use this code
-Rename the terraform.tfvars.example file to terraform.tfvars and update the values of the variables. Prior to running <code>terraform init</code> ensure a key-pair is created in the same location that you have in the terraform.tfvars (in my case it is us-east-2 so the key-pair was created in the same region).</br> I ran below commands from the same location where the .tf files were stored.</br>
-<code>terraform init</code></br>
-<code>terraform fmt</code> (this is optional)</br>
-<code>terraform workspace list</code>(this displays a list of workspaces available. By default, the 'default' workspace is selected. An * next to it</br>
-To create a new workspace named "Development" and switch to that workspace use the command: <code>terraform workspace new Development</code></br>
-<code>terraform plan -out globodeploy.tfplan</code></br>
-<code>terraform apply "globodeploy.tfplan"</code></br>
-Once done, I was launch the webpage from the output of the aws_elb_publich_dns.
-</br> After I was convinced this was working as expected, I destroyed the resouces using the command: <code>terraform destroy</code>
+Rename the `terraform.tfvars.example` file to `terraform.tfvars` and update the values of the variables. Prior to running `terraform init`, ensure a key-pair is created in the same location that you have in the `terraform.tfvars` (in my case it is us-east-2, so the key-pair was created in the same region).
 
-## Observation/Errors
+I ran the below commands from the same location where the `.tf` files were stored:
+
+```bash
+terraform init
+terraform fmt          # optional
+terraform workspace list   # lists available workspaces; the current one is marked with a *
+terraform workspace new Development   # create and switch to a new "Development" workspace
+terraform plan -out globodeploy.tfplan
+terraform apply "globodeploy.tfplan"
+```
+
+By default, the `default` workspace is selected. Once done, I was able to launch the webpage from the output of `aws_elb_public_dns`. After I was convinced this was working as expected, I destroyed the resources using the command:
+
+```bash
+terraform destroy
+```
+
+> This is an early learning example that authenticates with long-lived IAM user keys and an EC2 key-pair; see [`add-github-oidc-role`](../add-github-oidc-role/ReadMe.md) for the OpenID Connect approach that avoids static keys.

@@ -23,15 +23,27 @@ Before you start, make sure to install **Terraform**. You can find installation 
 
 ## Repository Structure
 
-This repository is organized into various folders, each corresponding to different tutorials and use cases for Terraform. The structure is as follows:
+Each folder is a self-contained Terraform example with its own ReadMe. Some folders are wired to GitHub Actions workflows for CI/CD.
 
-- **Get-Started-AWS-001** to **Get-Started-AWS-007**: Terraform use cases for provisioning resources on AWS.
-- **Get-Started-Azure-001** and **Get-Started-Azure-002**: Terraform use cases for provisioning resources on Azure.
-- **Get-Started-AWS-009-CI-CD-AzureDevops**: Demonstrates how to use Terraform with **Azure DevOps** to provision resources in **AWS** as part of a CI/CD pipeline.
-- **Get-Started-UsingVariables**: Uses the `count` construct to create multiple AWS cloud resources of the same type.
-- **Get-Started-HCP-Terraform**: Uses **HCP Terraform** (HashiCorp Cloud Platform) to show how to use Terraform in a managed environment.
+### Getting-started tutorials
 
-You can explore each of these folders to find specific examples and step-by-step guides.
+| Folder | Description |
+|--------|-------------|
+| [Get-Started-AWS-001](Get-Started-AWS-001/ReadMe.md) – [007](Get-Started-AWS-007/ReadMe.md) | Provisioning AWS resources with Terraform, building up concepts step by step |
+| [Get-Started-AWS-009-CI-CD-AzureDevops](Get-Started-AWS-009-CI-CD-AzureDevops/ReadMe.md) | Terraform with Azure DevOps to provision AWS resources via a CI/CD pipeline |
+| [Get-Started-Azure-001](Get-Started-Azure-001/ReadMe.md), [002](Get-Started-Azure-002/ReadMe.md) | Provisioning Azure resources with Terraform |
+| [Get-Started-UsingVariables](Get-Started-UsingVariables/ReadMe.md) | Using the `count` construct to create multiple resources of the same type |
+| [Get-Started-HCP-Terraform](Get-Started-HCP-Terraform/ReadMe.md) | Using HCP Terraform (managed remote state and execution) with a reusable VPC module |
+
+### AWS IAM and CI/CD
+
+| Folder | Description | Workflow |
+|--------|-------------|----------|
+| [add-github-oidc-role](add-github-oidc-role/ReadMe.md) | Creates the GitHub Actions OIDC provider and an IAM role, so workflows authenticate to AWS without static keys | — |
+| [terraform-import-aws-resource](terraform-import-aws-resource/ReadMe.md) | Imports existing AWS resources (VPC, subnets, route tables) into Terraform management using `import` blocks | [terraform-import.yml](.github/workflows/terraform-import.yml) |
+| [aws-iam-auto-pilot](aws-iam-auto-pilot/ReadMe.md) | Scopes `terraform apply` permissions to exactly what each plan needs, using IAM Policy Autopilot and a two-role (pipeline/apply) design | [terraform-iam-autopilot.yml](.github/workflows/terraform-iam-autopilot.yml), [terraform-iam-autopilot-deny.yml](.github/workflows/terraform-iam-autopilot-deny.yml) |
+
+You can explore each folder to find specific examples and step-by-step guides.
 
 ## Usage
 

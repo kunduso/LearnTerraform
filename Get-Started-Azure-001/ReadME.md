@@ -1,27 +1,32 @@
 ## Motivation
-I learnt about Azure Service Principal and how to create them from the commandline. I went through an informative article by Ned Bellavance on that subject. My intention was to be able to create a Azure Service Principal and then use the credentials to be able to provision a Resource group in Azure.
+I learnt about the Azure Service Principal and how to create one from the command line. I went through an informative article by Ned Bellavance on that subject. My intention was to be able to create an Azure Service Principal and then use the credentials to provision a resource group in Azure.
 
-## Command
-### Create service principal: <code>az ad sp create-for-rbac --name $(app-name) --role "Contributor" --scope "/subscriptions/$(your-subscription-id)" --years $(N)</code>
-</br>
+## Commands
 
-### Console output:
+### Create service principal
+```bash
+az ad sp create-for-rbac --name $(app-name) --role "Contributor" --scope "/subscriptions/$(your-subscription-id)" --years $(N)
+```
+
+Console output:
+```json
 {
-</br>  "appId": "$(appId)",
-</br>  "displayName": "$(app-name)",
-</br>  "name": "http://$(app-name)",
-</br>  "password": "$(password)",
-</br>  "tenant": "$(tenant)"
-</br>}
+  "appId": "$(appId)",
+  "displayName": "$(app-name)",
+  "name": "http://$(app-name)",
+  "password": "$(password)",
+  "tenant": "$(tenant)"
+}
+```
 
-
-## Command
-### Delete service pricipal: <code>az ad sp delete --id $(appId)</code>
-</br>
+### Delete service principal
+```bash
+az ad sp delete --id $(appId)
+```
 
 ## Usage
-The values received from the console output of <code>az ad sp create-for-rbac</code> are mapped to terraform variables. Details at [Terraform -creating a service principal](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret#creating-a-service-principal)
-## Reference Articles
-[Microsoft Docs](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli)
+The values received from the console output of `az ad sp create-for-rbac` are mapped to Terraform variables. Details at [Terraform - creating a service principal](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret#creating-a-service-principal).
 
-[Demystifying Azure AD Service Principals TL;DR -Read Conclusion](https://nedinthecloud.com/2019/07/16/demystifying-azure-ad-service-principals/)
+## Reference Articles
+- [Microsoft Docs](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli)
+- [Demystifying Azure AD Service Principals (TL;DR - read the conclusion)](https://nedinthecloud.com/2019/07/16/demystifying-azure-ad-service-principals/)
