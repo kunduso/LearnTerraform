@@ -41,7 +41,7 @@ jobs:
         id: attach
         run: |
           if [ ! -f "${POLICY_FILE}" ]; then
-            echo "::error::${POLICY_FILE} not found on main."
+            echo "::error::${POLICY_FILE} not found."
             exit 1
           fi
           APPLY_ROLE_ARN="${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}"
