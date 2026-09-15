@@ -76,6 +76,15 @@ jobs:
               || { echo "Failed, but not due to authorization:"; cat err.txt; exit 1; }
           fi
 
+      # --- Switch back to the pipeline role to clean up the apply role policy ---
+      - name: Configure AWS credentials (pipeline role)
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AUTOPILOT_PIPELINE_ROLE_ARN }}
+          role-session-name: autopilot-pipeline
+          aws-region: ${{ env.AWS_REGION }}
+
+
       # --- Always remove the generated policy from the apply role (runs as the pipeline role) ---
       - name: Cleanup generated policy from the apply role
         if: always()
