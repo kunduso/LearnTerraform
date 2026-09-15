@@ -1,0 +1,97 @@
+name: iam-autopilot-scoped-deny-check
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-2                    # region for the demo resources
+  APPLY_POLICY_NAME: autopilot-generated   # inline policy name on the apply role (overwritten each run)
+  # Path (relative to repo root) where the reviewed policy is committed.
+  POLICY_FILE: aws-iam-auto-pilot/generated-policy/generated-policy.json
+
+permissions: read-all
+
+jobs:
+  terraform:
+    name: 'iam-autopilot-scoped-deny-check'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write        # OIDC
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      # --- Authenticate as the PIPELINE role (plan reads, state access, manage apply-role policy) ---
+      - name: Configure AWS credentials (pipeline role)
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AUTOPILOT_PIPELINE_ROLE_ARN }}
+          role-session-name: autopilot-pipeline
+          aws-region: ${{ env.AWS_REGION }}
+
+      # --- Attach the reviewed policy to the apply role, then apply as that role ---
+      - name: Attach reviewed policy to apply role
+        id: attach
+        run: |
+          if [ ! -f "${POLICY_FILE}" ]; then
+            echo "::error::${POLICY_FILE} not found."
+            exit 1
+          fi
+          APPLY_ROLE_ARN="${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}"
+          APPLY_ROLE_NAME="${APPLY_ROLE_ARN##*/}"
+          echo "APPLY_ROLE_NAME=${APPLY_ROLE_NAME}" >> "$GITHUB_ENV"
+          aws iam put-role-policy \
+            --role-name "${APPLY_ROLE_NAME}" \
+            --policy-name "${APPLY_POLICY_NAME}" \
+            --policy-document "file://${POLICY_FILE}"
+          echo "Attached ${APPLY_POLICY_NAME} to ${APPLY_ROLE_NAME}"
+          sleep 10   # allow IAM propagation
+
+      - name: Assume apply role
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}
+          role-session-name: autopilot-apply
+          aws-region: ${{ env.AWS_REGION }}
+          role-chaining: true # change from the current pipeline role to the apply role
+          role-skip-session-tagging: true # skip session tagging to avoid permission issues
+
+      - name: Attempt out of scope call (expecting AccessDenied)
+        run: |
+          aws sts get-caller-identity
+          if aws ec2 describe-instances --region "$AWS_REGION" 2>err.txt; then
+            echo "UNEXPECTED: call succeeded — policy is too broad"; exit 1
+          else
+            grep -q "AccessDenied\|UnauthorizedOperation" err.txt \
+              && echo "PASS: out-of-scope call denied as expected" \
+              || { echo "Failed, but not due to authorization:"; cat err.txt; exit 1; }
+          fi
+
+      # --- Switch back to the pipeline role to clean up the apply role policy ---
+      - name: Configure AWS credentials (pipeline role)
+        if: always()
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AUTOPILOT_PIPELINE_ROLE_ARN }}
+          role-session-name: autopilot-pipeline
+          aws-region: ${{ env.AWS_REGION }}
+
+
+      # --- Always remove the generated policy from the apply role (runs as the pipeline role) ---
+      - name: Cleanup generated policy from the apply role
+        if: always()
+        run: |
+          APPLY_ROLE_ARN="${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}"
+          APPLY_ROLE_NAME="${APPLY_ROLE_NAME:-${APPLY_ROLE_ARN##*/}}"
+          aws iam delete-role-policy \
+            --role-name "${APPLY_ROLE_NAME}" \
+            --policy-name "${APPLY_POLICY_NAME}" \
+            && echo "Removed ${APPLY_POLICY_NAME} from ${APPLY_ROLE_NAME}" \
+            || echo "Nothing to remove (policy not attached)"
