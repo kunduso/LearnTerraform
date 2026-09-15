@@ -78,6 +78,7 @@ jobs:
 
       # --- Switch back to the pipeline role to clean up the apply role policy ---
       - name: Configure AWS credentials (pipeline role)
+        if: always()
         uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
           role-to-assume: ${{ secrets.AUTOPILOT_PIPELINE_ROLE_ARN }}
