@@ -18,9 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     permissions:
-      contents: write        # commit the generated policy to the PR branch
       id-token: write        # OIDC
-      pull-requests: write    # post the review comment
     defaults:
       run:
         shell: bash
@@ -58,9 +56,7 @@ jobs:
           echo "Attached ${APPLY_POLICY_NAME} to ${APPLY_ROLE_NAME}"
           sleep 10   # allow IAM propagation
 
-      - name: Assume apply role and run aws cli step
-        if: github.ref == 'refs/heads/main' && steps.attach.outcome == 'success'
-        working-directory: ./aws-iam-auto-pilot/infra
+      - name: Assume apply role and run aws cli steps
         run: |
           CREDS=$(aws sts assume-role \
             --role-arn "${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}" \
