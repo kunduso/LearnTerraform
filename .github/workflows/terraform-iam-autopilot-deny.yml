@@ -7,7 +7,6 @@ env:
   AWS_REGION: us-west-2                    # region for the demo resources
   APPLY_POLICY_NAME: autopilot-generated   # inline policy name on the apply role (overwritten each run)
   # Path (relative to repo root) where the reviewed policy is committed.
-  POLICY_DIR: aws-iam-auto-pilot/generated-policy
   POLICY_FILE: aws-iam-auto-pilot/generated-policy/generated-policy.json
 
 permissions: read-all
@@ -27,7 +26,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Check out the PR head branch so we can commit the policy back to it.
           ref: ${{ github.head_ref || github.ref_name }}
 
       # --- Authenticate as the PIPELINE role (plan reads, state access, manage apply-role policy) ---
@@ -62,7 +60,7 @@ jobs:
           role-to-assume: ${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}
           role-session-name: autopilot-apply
           aws-region: ${{ env.AWS_REGION }}
-          role-chaining: true # chang from the current pipeline role to the apply role
+          role-chaining: true # change from the current pipeline role to the apply role
           role-skip-session-tagging: true # skip session tagging to avoid permission issues
 
       - name: Attempt out of scope call (expecting AccessDenied)
