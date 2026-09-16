@@ -2,6 +2,8 @@
 
 This folder shows how to provision AWS networking through **HCP Terraform** (HashiCorp Cloud Platform), HashiCorp's managed service for running Terraform with remote state and remote execution.
 
+It is the companion code for the blog post [Provision AWS Resources with GitHub and HCP Terraform](https://skundunotes.com/2025/01/03/provision-aws-resources-with-github-and-hcp-terraform/).
+
 ## What it does
 
 Consumes a reusable, versioned VPC module to build a network:
