@@ -3,6 +3,8 @@ In this module I am using Microsoft Azure DevOps as the orchestrator to provisio
 
 The credentials are stored as secret variables in the Azure DevOps pipeline and passed to Terraform via the command line.
 
+This is the companion code for the blog post [Azure DevOps and Terraform to provision AWS S3](https://skundunotes.com/2021/02/14/azure-devops-and-terraform-to-provision-aws-s3/).
+
 ## What it creates
 An Amazon S3 bucket, with Terraform state stored remotely in a separate S3 bucket (see `backend.tf`).
 
