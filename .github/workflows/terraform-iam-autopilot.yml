@@ -30,28 +30,28 @@ jobs:
     permissions:
       contents: write        # commit the generated policy to the PR branch
       id-token: write        # OIDC
-      pull-requests: write    # post the review comment
+      pull-requests: write   # post the review comment
     defaults:
       run:
         shell: bash
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           # Check out the PR head branch so we can commit the policy back to it.
           ref: ${{ github.head_ref || github.ref_name }}
 
       # --- Authenticate as the PIPELINE role (plan reads, state access, manage apply-role policy) ---
       - name: Configure AWS credentials (pipeline role)
-        uses: aws-actions/configure-aws-credentials@v5.1.0
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
           role-to-assume: ${{ secrets.AUTOPILOT_PIPELINE_ROLE_ARN }}
           role-session-name: autopilot-pipeline
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
 
       - name: Install IAM Policy Autopilot
         run: |
@@ -106,6 +106,8 @@ jobs:
       #     [skip ci] prevents the bot commit from re-triggering this workflow. ---
       - name: Commit generated policy to PR branch
         if: github.event_name == 'pull_request' && steps.generate.outcome == 'success'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -114,13 +116,13 @@ jobs:
             echo "No policy change to commit."
           else
             git commit -m "chore: update scoped IAM policy from plan [skip ci]"
-            git push origin "HEAD:${{ github.head_ref }}"
-            echo "Committed ${POLICY_FILE} to ${{ github.head_ref }}"
+            git push origin "HEAD:$HEAD_REF"
+            echo "Committed ${POLICY_FILE} to $HEAD_REF"
           fi
 
       # --- On PR: post the policy as a review comment (in addition to the committed diff) ---
       - name: Post generated policy on PR
-        uses: actions/github-script@v6
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         if: github.event_name == 'pull_request'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -141,7 +143,7 @@ jobs:
 
             </details>
 
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            *Pushed by: @${process.env.GITHUB_ACTOR}, Action: \`${process.env.GITHUB_EVENT_NAME}\`*`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -155,7 +157,7 @@ jobs:
         if: github.ref == 'refs/heads/main' && steps.plan.outcome == 'success'
         run: |
           if [ ! -f "${POLICY_FILE}" ]; then
-            echo "::error::${POLICY_FILE} not found on main. It must be generated and committed via a PR before merging."
+            echo "::error::${POLICY_FILE} not found. It must be generated and committed via a PR before merging."
             exit 1
           fi
           APPLY_ROLE_ARN="${{ secrets.AUTOPILOT_APPLY_ROLE_ARN }}"
