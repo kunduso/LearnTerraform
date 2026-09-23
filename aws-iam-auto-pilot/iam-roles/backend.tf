@@ -1,7 +1,6 @@
-
 terraform {
   backend "s3" {
-    bucket       = "terraform-remote-state-076680484948"
+    bucket       = "aws-sample-amzn-s3-demo-terraform-remote-state-076680484948"
     key          = "tf/aws-iam-auto-pilot/iam-roles/terraform.tfstate"
     region       = "us-east-2"
     use_lockfile = true

@@ -35,9 +35,10 @@ variable "apply_role_name" {
 }
 
 variable "state_bucket" {
-  description = "S3 bucket holding the infra Terraform state. Both roles need access to read/write/lock it."
+  description = "S3 bucket holding the infra Terraform state. Both roles need access to read/write/lock it. Must match the bucket configured in backend.tf."
   type        = string
-  default     = "terraform-remote-state-076680484948"
+  # Please replace this value with your actual S3 bucket name.
+  default = "aws-sample-amzn-s3-demo-terraform-remote-state-076680484948"
 }
 
 variable "state_key_prefix" {
